@@ -74,7 +74,7 @@ fixPtr* InfixToPostfix( char * infix, char * postfix ) {
 
 
     for ( i = 0, j = 0, top = 0 ; infix[i] != '\0' ; i++ ) switch( infix[i] ) {
-        case '(' :
+        case ')' :
             stack[++top] = infix[i] ; // save it to the stack
             break ;
         case '+' : case '-' : case '*' : case '/' :
@@ -87,8 +87,8 @@ fixPtr* InfixToPostfix( char * infix, char * postfix ) {
             stack[++top] = infix[i] ; // save to stack
             // cout << stack[top] << endl ;
             break ;
-        case ')' :
-            while ( stack[top] != '(' ) {
+        case '(' :
+            while ( stack[top] != ')' ) {
                 Postfix -> ch = stack[top] ;
                 Postfix -> next = new fixPtr ;
                 Postfix = Postfix -> next ;
