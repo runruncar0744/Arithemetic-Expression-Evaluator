@@ -6,14 +6,15 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <string.h>
 
 using namespace std ;
 #define MAX 80
 
-struct postfixPtr {
+struct fixPtr {
     int num = -1 ;
     char ch = '\0' ;
-    postfixPtr * next;
+    fixPtr * next;
 } ;
 
 int Priority( char oPerator ) {
@@ -34,7 +35,7 @@ double Calculate( char oPerator, double num1, double num2 ) {
     } // switch between operators
 } // calculate the numbers
 
-int reverse(char *str)
+void ReverseArray(char *str)
 {
       int i,j;
       char reg;
@@ -47,10 +48,9 @@ int reverse(char *str)
             str[j] = reg;
             j--;
       }
-      return 0;
 } //reverse
 
-postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
+fixPtr* InfixToPostfix( char * infix, char * postfix ) {
     char stack[MAX] = {'\0'} ;
     int i = 0 ;
     int j = 0 ;
@@ -61,11 +61,15 @@ postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
     int numStack[MAX] = {-1} ;
     char reverse[MAX] = {'\0'} ;
 
-    postfixPtr* Postfix = NULL ;
-    postfixPtr* head = NULL;
-    Postfix = new postfixPtr;
-    head = Postfix ;
-    reverse( infix );
+    fixPtr* Postfix = NULL ;
+    fixPtr* Prefix = NULL ;
+    fixPtr* newPre = NULL ;
+    fixPtr* head = NULL;
+    fixPtr* head2 = NULL;
+    Postfix = new fixPtr;
+    head = Postfix;
+
+    ReverseArray( infix ) ;
 
 
 
@@ -76,7 +80,7 @@ postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
         case '+' : case '-' : case '*' : case '/' :
             while ( Priority( stack[top] ) >= Priority( infix[i]) ) { // check the priority
                 Postfix -> ch = stack[top] ;
-                Postfix -> next = new postfixPtr ;
+                Postfix -> next = new fixPtr ;
                 Postfix = Postfix -> next ;
                 top -- ;
             } // while()
@@ -86,7 +90,7 @@ postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
         case ')' :
             while ( stack[top] != '(' ) {
                 Postfix -> ch = stack[top] ;
-                Postfix -> next = new postfixPtr ;
+                Postfix -> next = new fixPtr ;
                 Postfix = Postfix -> next ;
                 top -- ;
             } // while()
@@ -99,9 +103,9 @@ postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
             } // if
 
             if( infix[i+1] < '0' || infix[i+1] > '9' ) {
-                reverse
+                ReverseArray(tempnum);
                 Postfix -> num = atoi(tempnum);
-                Postfix -> next = new postfixPtr ;
+                Postfix -> next = new fixPtr ;
                 Postfix = Postfix -> next ;
                 for( int n = 0; n < temp; n++ ) tempnum[n] = '\0';
                 temp = 0 ;
@@ -111,29 +115,47 @@ postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
 
     while ( top > 0 ) {
         Postfix -> ch = stack[top] ;
-        Postfix -> next = new postfixPtr ;
+        Postfix -> next = new fixPtr ;
         Postfix = Postfix -> next ;
         top -- ;
     } // get the last stack
 
     Postfix -> next = NULL ;
-    Postfix = head ;
+    Postfix = head;
+
+    newPre = new fixPtr;
+    newPre -> ch = Postfix -> ch;
+    newPre -> num = Postfix -> num;
+    newPre -> next = Prefix;
+    Prefix = newPre;
+
 
     while( Postfix -> next != NULL ) {
-        if ( Postfix -> num != -1 ) cout << Postfix -> num << ", " ;
-        if ( Postfix -> ch != '\0' ) cout << Postfix -> ch << ", " ;
+        newPre = new fixPtr;
+        newPre -> ch = Postfix -> ch;
+        newPre -> num = Postfix -> num;
+        newPre -> next = Prefix;
+        Prefix = newPre;
         Postfix = Postfix -> next ;
     } // while
 
-    Postfix = head ;
-    return Postfix ;
+    head2 = Prefix ;
+
+    while( Prefix -> next != NULL ) {
+        if ( Prefix -> num != -1 ) cout << Prefix -> num << ", " ;
+        if ( Prefix -> ch != '\0' ) cout << Prefix -> ch << ", " ;
+        Prefix = Prefix -> next ;
+    } // while
+
+    Prefix = head2 ;
+    return Prefix ;
 } // change the infix expression to postfix expression
 
 double Evaluate( char * infix ) {
     char postfix[MAX]= {'\0'} ;
     //char operand[2] = {'\0'} ;
     double stack[MAX] = {0.0} ;
-    postfixPtr* calPointer = NULL ;
+    fixPtr* calPointer = NULL ;
 
     calPointer = InfixToPostfix( infix, postfix ) ; // change infix 2 postfix
 
