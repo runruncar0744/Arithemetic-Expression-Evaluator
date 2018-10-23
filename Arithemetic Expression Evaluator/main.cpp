@@ -148,7 +148,8 @@ fixPtr* InfixToPostfix( char * infix, char * postfix ) {
     } // while
 
     Prefix = head2 ;
-    return Prefix ;
+    Postfix = head ;
+    return Postfix ;
 } // change the infix expression to postfix expression
 
 double Evaluate( char * infix ) {
