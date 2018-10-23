@@ -1,17 +1,20 @@
 //  Arithemetic Expression Evaluator
-// 10627130 ∏Í§u§G•“ ™L´a®} & 10627131 ∏Í§u§G•“ ßıÆmﬁ≥
+// 10627130 Ë≥áÂ∑•‰∫åÁî≤ ÊûóÂÜ†ËâØ & 10627131 Ë≥áÂ∑•‰∫åÁî≤ ÊùéÂ≥ªÁëã
 // CodeBlocks 17.12
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <iterator>
+#include <algorithm>
 
 using namespace std ;
 #define MAX 80
 
-struct postfixPtr{
-  char ch;
-  postfixPtr * next;
-};
+struct postfixPtr {
+    int num = -1 ;
+    char ch = '\0' ;
+    postfixPtr * next;
+} ;
 
 int Priority( char oPerator ) {
     switch( oPerator ) {
@@ -31,59 +34,119 @@ double Calculate( char oPerator, double num1, double num2 ) {
     } // switch between operators
 } // calculate the numbers
 
-void InfixToPostfix( char * infix, char * postfix ) {
+int reverse(char *str)
+{
+      int i,j;
+      char reg;
+      j = strlen(str)-1;
+
+      for(i=0; i<j; i++)
+      {
+            reg = str[i];
+            str[i] =str[j];
+            str[j] = reg;
+            j--;
+      }
+      return 0;
+} //reverse
+
+postfixPtr* InfixToPostfix( char * infix, char * postfix ) {
     char stack[MAX] = {'\0'} ;
     int i = 0 ;
     int j = 0 ;
     int top = 0 ;
+    int num = 0, temp = 0;
+    int count = 0, k = 0;
+    char tempnum[MAX]  = {'\0'} ;
+    int numStack[MAX] = {-1} ;
+    char reverse[MAX] = {'\0'} ;
+
+    postfixPtr* Postfix = NULL ;
+    postfixPtr* head = NULL;
+    Postfix = new postfixPtr;
+    head = Postfix ;
+    reverse( infix );
+
+
 
     for ( i = 0, j = 0, top = 0 ; infix[i] != '\0' ; i++ ) switch( infix[i] ) {
         case '(' :
             stack[++top] = infix[i] ; // save it to the stack
             break ;
         case '+' : case '-' : case '*' : case '/' :
-            while ( Priority( stack[top] ) >= Priority( infix[i]) ) postfix[j++] = stack[top--] ; // check the priority
+            while ( Priority( stack[top] ) >= Priority( infix[i]) ) { // check the priority
+                Postfix -> ch = stack[top] ;
+                Postfix -> next = new postfixPtr ;
+                Postfix = Postfix -> next ;
+                top -- ;
+            } // while()
             stack[++top] = infix[i] ; // save to stack
+            // cout << stack[top] << endl ;
             break ;
         case ')' :
-            while ( stack[top] != '(' ) postfix[j++] = stack[top--] ; // get the previous bracket and output to postfix array
+            while ( stack[top] != '(' ) {
+                Postfix -> ch = stack[top] ;
+                Postfix -> next = new postfixPtr ;
+                Postfix = Postfix -> next ;
+                top -- ;
+            } // while()
             top -- ; // minus the top
             break ;
         default : // numbers
-            postfix[j++] = infix[i] ; // if it's a number, output to postfix array
+            if( infix[i] >= '0' && infix[i] <= '9' ) {
+                tempnum[temp] = infix[i];
+                temp++;
+            } // if
+
+            if( infix[i+1] < '0' || infix[i+1] > '9' ) {
+                reverse
+                Postfix -> num = atoi(tempnum);
+                Postfix -> next = new postfixPtr ;
+                Postfix = Postfix -> next ;
+                for( int n = 0; n < temp; n++ ) tempnum[n] = '\0';
+                temp = 0 ;
+            }  // else// if it's a number, output to postfix array
     } // check and save to postfix
+    // cout << top << endl ;
 
-    while ( top > 0 ) postfix[j++] = stack[top--] ; // get the last stack
-    cout << postfix << endl;
+    while ( top > 0 ) {
+        Postfix -> ch = stack[top] ;
+        Postfix -> next = new postfixPtr ;
+        Postfix = Postfix -> next ;
+        top -- ;
+    } // get the last stack
 
-    postfixPtr* Postfix = NULL ;
-    postfixPtr* head = NULL;
-    head = Postfix;
+    Postfix -> next = NULL ;
+    Postfix = head ;
 
-    for( int k = 0 ; postfix[k] != '\0'; k++ ){
-        Postfix -> ch = postfix[k];
-        Postfix ->next = new postfixPtr;
-        Postfix = Postfix -> next;
-    }// for
+    while( Postfix -> next != NULL ) {
+        if ( Postfix -> num != -1 ) cout << Postfix -> num << ", " ;
+        if ( Postfix -> ch != '\0' ) cout << Postfix -> ch << ", " ;
+        Postfix = Postfix -> next ;
+    } // while
+
+    Postfix = head ;
+    return Postfix ;
 } // change the infix expression to postfix expression
 
 double Evaluate( char * infix ) {
     char postfix[MAX]= {'\0'} ;
-    char operand[2] = {'\0'} ;
+    //char operand[2] = {'\0'} ;
     double stack[MAX] = {0.0} ;
+    postfixPtr* calPointer = NULL ;
 
-    InfixToPostfix( infix, postfix ) ; // change infix 2 postfix
+    calPointer = InfixToPostfix( infix, postfix ) ; // change infix 2 postfix
 
     int top = 0 ;
-    int i = 0 ;
-    for ( top = 0, i = 0 ; postfix[i] != '\0' ; i++ ) switch( postfix[i] ) {
-            case '+': case '-' : case '*' : case '/' :
-                stack[top - 1] = Calculate( postfix[i], stack[top - 1], stack[top] ) ;
-                top -- ;
-                break ;
-            default:
-                operand[0] = postfix[i] ;
-                stack[++top] = atof(operand) ;
+    while ( calPointer -> next != NULL ) {
+        if ( calPointer->ch != '\0' ) { // operand situation
+            stack[top-1] = Calculate( calPointer->ch, stack[top-1], stack[top] ) ;
+            top -- ;
+        } // calculate
+        else if ( calPointer->num != -1 ) { // number situation
+            stack[++top] = static_cast<double>(calPointer->num) ;
+        } // save number into stack
+        calPointer = calPointer->next ;
     } // check if it's a operand or number and calculate
 
     return stack[top];
@@ -95,45 +158,44 @@ bool LegalExpressionOrNot( char * infix ) {
 
     for ( int i = 0; infix[i] != '\0'; i++ ) {
         if( infix[i] != '+' && infix[i] != '-' && infix[i] != '*' &&
-            infix[i] != '/' && infix[i] != '(' && infix[i] != ')' && ( infix[i] < '0' || infix[i] > '9' )  ) {
-          cout << "Error 1: " << infix[i] << " is not a legitimate character." << endl;
-          return false;
+           infix[i] != '/' && infix[i] != '(' && infix[i] != ')' && infix[i] != '%' && ( infix[i] < '0' || infix[i] > '9' )  ) {
+            cout << "Error 1: " << infix[i] << " is not a legitimate character." << endl;
+            return false;
         } // if
 
-        if( infix[i] == '+' || infix[i] == '-' || infix[i] == '*' || infix[i] == '/' )  {
-           if( infix[i+1] == '\0' || infix[i+1] == '+' || infix[i+1] == '-' || infix[i+1] == '*' || infix[i+1
-              ] == '/' ) {
-              cout << "Error 3: there is one extra operator." << endl;
-              return false;
-           } // if
+        if( infix[i] == '+' || infix[i] == '-' || infix[i] == '*' || infix[i] == '/' || infix[i] == '%' )  {
+            if( infix[i+1] == '\0' || infix[i+1] == '+' || infix[i+1] == '-' || infix[i+1] == '*' || infix[i+1] == '/' || infix[i] == '%' ) {
+                cout << "Error 3: there is one extra operator." << endl;
+                return false;
+            } // if
         } // if
 
         if( infix[i] == '(' )  {
-           if( infix[i+1] == '+' || infix[i+1] == '-' || infix[i+1] == '*' || infix[i+1] == '/' ) {
-              cout << "Error 3: there is one extra operator." << endl;
-              return false;
-           } // if
+            if( infix[i+1] == '+' || infix[i+1] == '-' || infix[i+1] == '*' || infix[i+1] == '/' || infix[i] == '%' ) {
+                cout << "Error 3: there is one extra operator." << endl;
+                return false;
+            } // if
         } // if
 
         if( infix[i] == ')' )  {
-           if( infix[i+1] >= '0' && infix[i+1] <= '9' ) {
-              cout << "Error 3: there is one extra operand." << endl;
-              return false;
-           } // if
+            if( infix[i+1] >= '0' && infix[i+1] <= '9' ) {
+                cout << "Error 3: there is one extra operand." << endl;
+                return false;
+            } // if
         } // if
 
         if( infix[i] == '(' )  {
-           if( infix[i-1] >= '0' && infix[i-1] <= '9' ) {
-              cout << "Error 3: there is one extra operand." << endl;
-              return false;
-           } // if
+            if( infix[i-1] >= '0' && infix[i-1] <= '9' ) {
+                cout << "Error 3: there is one extra operand." << endl;
+                return false;
+            } // if
         } // if
 
-        if( infix[i] == '/' )  {
-           if( infix[i+1] == '0' ) {
-              cout << "Error 4: Divisor can't not be 0." << endl;
-              return false;
-           } // if
+        if( infix[i] == '/' || infix[i] == '%' )  {
+            if( infix[i+1] == '0' ) {
+                cout << "Error 4: Divisor can't not be 0." << endl;
+                return false;
+            } // if
         } // if
 
         if( infix[i] == '(' ) leftBracket++;
@@ -141,15 +203,15 @@ bool LegalExpressionOrNot( char * infix ) {
 
     } // for
 
-        if( leftBracket > rightBracket ) {
-           cout<< "Error 2: there is one extra open parenthesis." << endl;
-           return false;
-        } // if
+    if( leftBracket > rightBracket ) {
+        cout<< "Error 2: there is one extra open parenthesis." << endl;
+        return false;
+    } // if
 
-        else if( rightBracket > leftBracket ){
-           cout<< "Error 2: there is one extra close parenthesis." << endl;
-           return false;
-        } // if
+    else if( rightBracket > leftBracket ){
+        cout<< "Error 2: there is one extra close parenthesis." << endl;
+        return false;
+    } // if
 
     cout<< "It is a legitimate infix expression" << endl;
     return true;
@@ -169,6 +231,7 @@ int main() {
         cout << "***** 0 : Quit                           *****" << endl ;
         cout << "***** 1 : Read, analyze and calculate    *****" << endl ;
         cout << "**********************************************" << endl ;
+        cout << "Please enter your command:" << endl ;
         scanf( "%d", &command );
         scanf( "%c", &line );
 
@@ -176,27 +239,29 @@ int main() {
             case 0 :
                 cout << "Bye :(" << endl ;
                 return 0 ;
-            // quit case
+                // quit case
             case 1 :
                 cout << "Please enter your infix expression:" << endl ;
                 while( temp != '\n' ) {
-                  scanf( "%c", &temp );
-                  if ( temp != ' ' && temp != '\n' ) {
-                    infix[i] = temp ;
-                    i++;
-                  } // if
+                    scanf( "%c", &temp );
+                    if ( temp != ' ' && temp != '\n' ) {
+                        infix[i] = temp ;
+                        i++;
+                    } // if
                 } // while
 
                 i = 0;
 
 
-                if ( LegalExpressionOrNot( infix ) )
+                if ( LegalExpressionOrNot( infix ) ) {
                     cout << "The value of the expression is :" << Evaluate( infix ) << endl << endl ; // print the value out
+                } // if()
                 else
                     cout << "Illegal expression!" << endl ; // wrong message
                 do {
                     cout << "Would you like to try again?(Y/N)" << endl ;
                     scanf( "%c", &continueChar );
+                    scanf( "%c", &line );
                     switch ( continueChar ) {
                         case 'Y' : case 'y' :
                             continueOrNot = true ;
@@ -209,16 +274,17 @@ int main() {
                     } // switch between continueChar
                 } while ( continueChar != 'Y' && continueChar != 'y' && continueChar != 'N' && continueChar != 'n' ) ;
                 break ;
-            // revert, evaluate, calculate and print
+                // revert, evaluate, calculate and print
             default:
                 cout << "Error command! Please try again..." << endl ;
                 continueOrNot = true ;
                 break ;
-            // illegal input
+                // illegal input
         } // switch between commands
 
         temp = '\0';
         for( int j = 0; infix[j] != '\0'; j++ ) infix[j] = '\0';
+
     } while( continueOrNot ) ;
 
     cout << "Bye :(" << endl ;
